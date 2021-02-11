@@ -121,5 +121,9 @@ public class ClusterFilter implements PixelFilter {
     }
 
     @Override public void drawOverlay(PApplet window, DImage original, DImage filtered) {
+        for (Cluster cluster : clusterList) {
+            window.fill(255, 0, 0);
+            window.ellipse( cluster.getCenter().getX(), cluster.getCenter().getY(), 10, 10);
+        }
     }
 }

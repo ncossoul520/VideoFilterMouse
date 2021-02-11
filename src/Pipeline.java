@@ -1,3 +1,4 @@
+import javafx.scene.effect.BoxBlur;
 import processing.core.PApplet;
 
 import javax.swing.*;
@@ -7,13 +8,11 @@ public class Pipeline implements PixelFilter {
     private ArrayList<PixelFilter> filters = new ArrayList<>();
 
     public Pipeline() {
+        ConvolutionFilter blurring = new ConvolutionFilter(7);
         ThresholdFilter thresholding = new ThresholdFilter(230);
-
-//        ConvolutionFilter1 blur = new ConvolutionFilter1();
-//        outline.setKernel( outline.blurKernel );
-
         ClusterFilter clustering = new ClusterFilter(2);
 
+        filters.add( blurring );
         filters.add( thresholding );
         filters.add( clustering );
     }
@@ -28,5 +27,8 @@ public class Pipeline implements PixelFilter {
     }
 
     @Override public void drawOverlay(PApplet window, DImage original, DImage filtered) {
+        for ( PixelFilter filter : filters) {
+            filter.drawOverlay(window, original, filtered);
+        }
     }
 }
