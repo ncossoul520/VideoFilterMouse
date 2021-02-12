@@ -6,9 +6,15 @@ public class Cluster {
 
     public Cluster() {
         // Create empty list and randomly init center
-        center = new Point(); // TODO pick an existing point instead of a random point
+        center = new Point();
         pointList = new ArrayList<>();
     }
+
+    public Cluster(Point p) {
+        center = p;
+        pointList = new ArrayList<>();
+    }
+
 
     public void add(Point p) {
         pointList.add(p);
