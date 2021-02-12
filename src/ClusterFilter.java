@@ -1,6 +1,7 @@
 import processing.core.PApplet;
 import javax.swing.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ClusterFilter implements PixelFilter {
     private int k = 1;
@@ -20,11 +21,11 @@ public class ClusterFilter implements PixelFilter {
     }
 
 
-        @Override
+    @Override
     public DImage processImage(DImage img) {
-        clusterList = initClusters(k);
         short[][] grid  = img.getBWPixelGrid();
         ArrayList<Point> allPoints = makePointList(grid);
+        clusterList = initClusters(k, allPoints);
 
         // Create clusters
         Boolean stable = false;
@@ -53,10 +54,12 @@ public class ClusterFilter implements PixelFilter {
         System.out.println("DEBUG: #points clusters=" + sum + " vs #points img=" + img.getHeight() * img.getWidth());
     }
 
-    private ArrayList<Cluster> initClusters(int k) {
+    private ArrayList<Cluster> initClusters(int k, ArrayList<Point> points) {
         ArrayList<Cluster> out = new ArrayList<>();
+
         for (int i = 0; i < k; i++) {
-            out.add( new Cluster() );
+            Point p = points.get( (int)( Math.random() * points.size() ) );
+            out.add( new Cluster( p ) );
         }
         return out;
     }
