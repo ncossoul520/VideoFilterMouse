@@ -1,17 +1,14 @@
 import processing.core.PApplet;
-import javax.swing.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class ClusterFilter implements PixelFilter {
-    private int k = 1;
+    private static final int CLUSTERS_MAX_NUM = 100;
+    private int k = -1;
     private ArrayList<Cluster> clusterList;
     private ArrayList<PixelFilter> filters = new ArrayList<>();
 
+    // When k not given: calculate number of clusters
     public ClusterFilter() {
-        do {
-            k = Integer.parseInt(JOptionPane.showInputDialog("Enter a number of clusters [1-256]"));
-        } while (k < 1 || k > 256);
     }
 
     public ClusterFilter(int k) {
@@ -25,16 +22,12 @@ public class ClusterFilter implements PixelFilter {
     public DImage processImage(DImage img) {
         short[][] grid  = img.getBWPixelGrid();
         ArrayList<Point> allPoints = makePointList(grid);
-        clusterList = initClusters(k, allPoints);
 
-        // Create clusters
-        Boolean stable = false;
-        do {
-            clearAllClusters( clusterList );  // remove all points from clusters
-            assignPointsToClusters( allPoints, clusterList );
-            stable = reCalculateCenters( clusterList );
-//            displayInfo( img );
-        } while ( !stable );
+        if (k == -1) {
+            k = calculateNumClusters( allPoints );
+        }
+
+        clusterList = createClusters(k, allPoints);
 
         short[][] red   = new short[img.getHeight()][img.getWidth()];
         short[][] green = new short[img.getHeight()][img.getWidth()];
@@ -44,6 +37,17 @@ public class ClusterFilter implements PixelFilter {
         return img;
     }
 
+
+    private ArrayList<Cluster> createClusters(int k, ArrayList<Point> allPoints) {
+        ArrayList<Cluster> clusters = initClusters(k, allPoints);
+        Boolean stable = false;
+        do {
+            clearAllClusters( clusters );
+            assignPointsToClusters( allPoints, clusters );
+            stable = reCalculateCenters( clusters );
+        } while ( !stable );
+        return clusters;
+    }
 
     private void displayInfo(DImage img) {
         int sum = 0;
@@ -122,6 +126,37 @@ public class ClusterFilter implements PixelFilter {
             }
         }
     }
+
+    private int calculateNumClusters(ArrayList<Point> allPoints) {
+        ArrayList<Cluster> clusters;
+        k_loop : for (int k = 1; k < CLUSTERS_MAX_NUM; k++) {
+            clusters = createClusters(k, allPoints);
+            double density = 0;
+            for (Cluster cluster : clusters) {
+                density = calculateClusterDensity( cluster );
+                if (density < 0.007) { continue k_loop; }
+            }
+            return k; // all clusters for this k value have a good density
+        }
+        return -1;
+    }
+
+    private double calculateClusterDensity(Cluster cluster) {
+        double radius = clusterRadius( cluster );
+        return cluster.size() / (Math.PI * radius * radius);
+    }
+
+    private double clusterRadius(Cluster cluster) {
+        double dist, radius = 0;
+        for (Point point : cluster.getPointList()) {
+            dist = point.distanceFrom( cluster.getCenter() );
+            if (dist > radius) {
+                radius = dist;
+            }
+        }
+        return radius;
+    }
+
 
     @Override public void drawOverlay(PApplet window, DImage original, DImage filtered) {
         for (Cluster cluster : clusterList) {

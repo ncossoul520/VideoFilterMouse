@@ -10,7 +10,7 @@ public class Pipeline implements PixelFilter {
     public Pipeline() {
         ConvolutionFilter blurring = new ConvolutionFilter(7);
         ThresholdFilter thresholding = new ThresholdFilter(230);
-        ClusterFilter clustering = new ClusterFilter(2);
+        ClusterFilter clustering = new ClusterFilter();
 
         filters.add( blurring );
         filters.add( thresholding );
